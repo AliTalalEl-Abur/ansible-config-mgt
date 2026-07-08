@@ -1,0 +1,87 @@
+---
+- name: Configuración básica de servidores
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Actualizar caché de apt
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Instalar paquetes esenciales
+      apt:
+        name:
+          - curl
+          - vim
+          - htop
+          - git
+          - unzip
+        state: present
+
+    - name: Crear directorio de aplicación
+      file:
+        path: /opt/app
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+
+    - name: Configurar zona horaria
+      timezone:
+        name: UTC
+
+    - name: Asegurar que el servicio SSH está corriendo
+      service:
+        name: ssh
+        state: started
+        enabled: yes
+
+- name: Configuración específica para servidores web
+  hosts: webservers
+  become: yes
+
+  tasks:
+    - name: Instalar Nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Iniciar y habilitar Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Crear página de prueba
+      copy:
+        dest: /var/www/html/index.html
+        content: |
+          <html>
+            <head><title>Servidor Configurado por Ansible</title></head>
+            <body>
+              <h1>¡Hola! Este servidor fue configurado automáticamente con Ansible</h1>
+              <p>Servidor: {{ inventory_hostname }}</p>
+              <p>Fecha: {{ ansible_date_time.iso8601 }}</p>
+            </body>
+          </html>
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+- name: Configuración específica para servidores de base de datos
+  hosts: dbservers
+  become: yes
+
+  tasks:
+    - name: Instalar MySQL Server
+      apt:
+        name: mysql-server
+        state: present
+
+    - name: Iniciar y habilitar MySQL
+      service:
+        name: mysql
+        state: started
+        enabled: yes
