@@ -1,4 +1,6 @@
 ---
+- hosts: all
+- import_playbook: ../static-assignments/common-del.yml
 - name: Configuracion basica del servidor bastion (localhost)
   hosts: local
   become: yes
